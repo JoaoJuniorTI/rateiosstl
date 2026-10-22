@@ -15,12 +15,16 @@ create table if not exists stls (
   whatsapp text,
   email text,
   instagram text,
+  valor numeric(10, 2) check (valor >= 0),
   foto_path text not null,
   criado_em timestamptz not null default now(),
   constraint stls_algum_contato check (
     coalesce(whatsapp, email, instagram) is not null
   )
 );
+
+-- Valor do rateio (para bancos criados antes desse campo existir).
+alter table stls add column if not exists valor numeric(10, 2) check (valor >= 0);
 
 -- Uma única linha com a senha do site (hash) e sua versão.
 -- Trocar a senha incrementa a versão, o que derruba todos os acessos antigos.

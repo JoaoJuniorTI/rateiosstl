@@ -2,7 +2,7 @@
 
 import Fuse from "fuse.js";
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { formatarWhatsapp } from "@/lib/contato";
+import { formatarValor, formatarWhatsapp, valorParaCampo } from "@/lib/contato";
 import { NOVA_CATEGORIA, type Categoria, type Stl } from "@/lib/tipos";
 import { criarCategoria, excluirCategoria, excluirStl, salvarStl, trocarSenha, type Resultado } from "./acoes";
 
@@ -135,6 +135,14 @@ function FormStl({ stl, categorias, aoTerminar }: { stl: Stl | null; categorias:
           <input id="comprador" name="comprador" defaultValue={stl?.comprador} required maxLength={80} />
         </div>
 
+        <div className="campo">
+          <label htmlFor="valor">Valor do rateio (opcional)</label>
+          <div className="campo-moeda">
+            <span>R$</span>
+            <input id="valor" name="valor" inputMode="decimal" placeholder="25,00" defaultValue={stl?.valor != null ? valorParaCampo(stl.valor) : ""} maxLength={14} />
+          </div>
+        </div>
+
         <fieldset className="contatos-grupo">
           <legend>Contato (preencha pelo menos um)</legend>
           <div className="campo">
@@ -212,6 +220,7 @@ function ListaStls({ stls, editandoId, aoEditar, aoExcluir }: { stls: Stl[]; edi
                 <strong>{s.nome}</strong>
                 <span>
                   {s.categoria} · {s.comprador}
+                  {s.valor != null && <> · {formatarValor(s.valor)}</>}
                 </span>
               </div>
               <div className="acoes">

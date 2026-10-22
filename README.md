@@ -20,6 +20,7 @@ Vá anotando os valores marcados com 📝 num bloco de notas.
    - Crie uma senha de banco (guarde, mas o site não usa)
    - Região: **South America (São Paulo)**
 2. Com o projeto pronto, abra **SQL Editor** no menu lateral, clique em **New query**, cole todo o conteúdo do arquivo [`supabase/schema.sql`](supabase/schema.sql) e clique em **Run**. Deve aparecer "Success".
+   - Pode rodar o arquivo de novo sempre que ele mudar (ex.: quando um campo novo for adicionado): ele não apaga nada do que já existe.
 3. Abra **Project Settings → API** (ou **API Keys**) e anote:
    - 📝 **Project URL** (ex.: `https://abcdefgh.supabase.co`)
    - 📝 a chave **service_role** (ou **secret**). ⚠️ Essa chave dá acesso total. Nunca coloque ela em lugar público.

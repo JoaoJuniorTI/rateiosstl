@@ -9,6 +9,7 @@ export type Stl = {
   whatsapp: string | null;
   email: string | null;
   instagram: string | null;
+  valor: number | null;
   foto_path: string;
   foto_url: string;
   criado_em: string;

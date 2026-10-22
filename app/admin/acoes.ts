@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { limparEmail, limparInstagram, limparWhatsapp } from "@/lib/contato";
+import { lerValor, limparEmail, limparInstagram, limparWhatsapp } from "@/lib/contato";
 import { COOKIE_ADMIN, DURACAO_ADMIN_S, conferirAdmin, ehAdmin, gerarHash, lerConfiguracao, opcoesCookie, tokenAdmin } from "@/lib/sessao";
 import { BUCKET, supabaseAdmin } from "@/lib/supabase";
 import { NOVA_CATEGORIA } from "@/lib/tipos";
@@ -46,6 +46,7 @@ export async function salvarStl(_anterior: Resultado, form: FormData): Promise<R
   const whatsapp = limparWhatsapp(String(form.get("whatsapp") ?? "")) || null;
   const email = limparEmail(String(form.get("email") ?? "")) || null;
   const instagram = limparInstagram(String(form.get("instagram") ?? "")) || null;
+  const valor = lerValor(String(form.get("valor") ?? ""));
   const foto = form.get("foto");
   const temFoto = foto instanceof File && foto.size > 0;
 
@@ -58,6 +59,7 @@ export async function salvarStl(_anterior: Resultado, form: FormData): Promise<R
   if (whatsapp && (whatsapp.length < 12 || whatsapp.length > 15)) return erro("WhatsApp inválido. Use DDD + número, ex.: (11) 98765-4321.");
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return erro("E-mail inválido.");
   if (instagram && !/^[A-Za-z0-9._]{1,30}$/.test(instagram)) return erro("Usuário do Instagram inválido.");
+  if (valor !== null && (Number.isNaN(valor) || valor > 99_999_999)) return erro("Valor inválido. Use o formato 25,00.");
   if (categoriaId === NOVA_CATEGORIA && !novaCategoria) return erro("Digite o nome da nova categoria.");
   if (!categoriaId) return erro("Escolha uma categoria.");
   if (!id && !temFoto) return erro("Escolha uma foto.");
@@ -78,7 +80,7 @@ export async function salvarStl(_anterior: Resultado, form: FormData): Promise<R
     if (error) return erro(`Falha ao enviar a foto: ${error.message}`);
   }
 
-  const dados = { nome, comprador, whatsapp, email, instagram, categoria_id: categoriaId, ...(fotoPath && { foto_path: fotoPath }) };
+  const dados = { nome, comprador, whatsapp, email, instagram, valor, categoria_id: categoriaId, ...(fotoPath && { foto_path: fotoPath }) };
 
   if (id) {
     const { data: antigo } = await supabase.from("stls").select("foto_path").eq("id", id).single();

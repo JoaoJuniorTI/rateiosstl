@@ -1,4 +1,4 @@
-import { formatarWhatsapp, linkEmail, linkInstagram, linkWhatsapp } from "@/lib/contato";
+import { formatarValor, formatarWhatsapp, linkEmail, linkInstagram, linkWhatsapp } from "@/lib/contato";
 import type { Stl } from "@/lib/tipos";
 import { IconeEmail, IconeInstagram, IconeWhatsapp } from "./Icones";
 
@@ -10,6 +10,11 @@ export default function CardStl({ stl, aoAmpliar }: { stl: Stl; aoAmpliar: () =>
       </button>
       <div className="card-corpo">
         <h3 className="card-nome">{stl.nome}</h3>
+        {stl.valor != null && (
+          <p className="valor">
+            {formatarValor(stl.valor)} <small>no rateio</small>
+          </p>
+        )}
         <span className="etiqueta">{stl.categoria}</span>
         <p className="comprador">
           Comprado por <strong>{stl.comprador}</strong>
