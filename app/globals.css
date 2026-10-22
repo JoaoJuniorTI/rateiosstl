@@ -73,8 +73,9 @@ button, input, select { font: inherit; color: inherit; }
 
 .card { background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio); overflow: hidden; box-shadow: var(--sombra); display: flex; flex-direction: column; transition: transform 0.15s, box-shadow 0.15s; }
 .card:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(29, 27, 24, 0.06), 0 10px 24px rgba(29, 27, 24, 0.08); }
-.card-foto { display: block; width: 100%; aspect-ratio: 1; border: 0; padding: 0; background: #eeebe5; cursor: zoom-in; }
-.card-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* A foto fica posicionada por cima do quadro: assim ela nunca muda o tamanho do card. */
+.card-foto { position: relative; display: block; width: 100%; aspect-ratio: 1; overflow: hidden; border: 0; padding: 0; background: #eeebe5; cursor: zoom-in; }
+.card-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .card-corpo { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .card-nome { margin: 0; font-size: 15px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
 .valor { margin: -2px 0 0; font-size: 16px; font-weight: 800; color: var(--destaque-escuro); }
@@ -152,6 +153,14 @@ button, input, select { font: inherit; color: inherit; }
 .foto-escolha { display: flex; gap: 12px; align-items: center; }
 .foto-previa { width: 88px; height: 88px; border-radius: 12px; background: #eeebe5; object-fit: cover; flex: none; border: 1px solid var(--borda); }
 .foto-previa.vazia { display: flex; align-items: center; justify-content: center; color: var(--texto-suave); font-size: 12px; text-align: center; }
+
+.enquadrador { display: flex; flex-direction: column; gap: 10px; }
+.enquadrador-quadro { position: relative; width: 100%; max-width: 320px; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #eeebe5; cursor: grab; touch-action: none; user-select: none; outline: 2px solid var(--destaque); outline-offset: 2px; }
+.enquadrador-quadro:active { cursor: grabbing; }
+.enquadrador-quadro img { position: absolute; max-width: none; pointer-events: none; }
+.enquadrador-quadro.carregando { display: flex; align-items: center; justify-content: center; color: var(--texto-suave); font-size: 13px; cursor: default; }
+.enquadrador-zoom { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; max-width: 320px; }
+.enquadrador-zoom input { flex: 1; accent-color: var(--destaque); }
 
 .lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .lista li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--borda); }

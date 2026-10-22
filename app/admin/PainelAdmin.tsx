@@ -5,6 +5,7 @@ import { useActionState, useEffect, useMemo, useRef, useState, useTransition } f
 import { formatarValor, formatarWhatsapp, valorParaCampo } from "@/lib/contato";
 import { NOVA_CATEGORIA, type Categoria, type Stl } from "@/lib/tipos";
 import { criarCategoria, excluirCategoria, excluirStl, salvarStl, trocarSenha, type Resultado } from "./acoes";
+import Enquadrador from "./Enquadrador";
 
 type Props = { stls: Stl[]; categorias: Categoria[]; senhaDefinida: boolean };
 
@@ -38,26 +39,13 @@ export default function PainelAdmin({ stls, categorias, senhaDefinida }: Props) 
 
 // ---------- Cadastro / edição ----------
 
-// Reduz a foto para no máximo 1200px e converte para WebP (ou JPG), deixando-a leve.
-async function comprimirFoto(arquivo: File): Promise<File> {
-  const imagem = await createImageBitmap(arquivo);
-  const escala = Math.min(1, 1200 / Math.max(imagem.width, imagem.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(imagem.width * escala);
-  canvas.height = Math.round(imagem.height * escala);
-  canvas.getContext("2d")!.drawImage(imagem, 0, 0, canvas.width, canvas.height);
-  const gerar = (tipo: string) => new Promise<Blob | null>((ok) => canvas.toBlob(ok, tipo, 0.82));
-  let blob = await gerar("image/webp");
-  if (!blob || blob.type !== "image/webp") blob = await gerar("image/jpeg");
-  if (!blob) throw new Error("Não foi possível processar a foto.");
-  const extensao = blob.type === "image/webp" ? "webp" : "jpg";
-  return new File([blob], `foto.${extensao}`, { type: blob.type });
-}
-
 function FormStl({ stl, categorias, aoTerminar }: { stl: Stl | null; categorias: Categoria[]; aoTerminar: () => void }) {
   const [resultado, acao, salvando] = useActionState<Resultado, FormData>(salvarStl, null);
   const [foto, setFoto] = useState<File | null>(null);
   const [previa, setPrevia] = useState<string | null>(stl?.foto_url ?? null);
+  // Imagem original (sem recorte), para poder reenquadrar quantas vezes quiser.
+  const [original, setOriginal] = useState<string | null>(stl?.foto_url ?? null);
+  const [enquadrando, setEnquadrando] = useState(false);
   const [erroFoto, setErroFoto] = useState<string | null>(null);
   const [categoria, setCategoria] = useState(stl?.categoria_id ?? (categorias.length ? "" : NOVA_CATEGORIA));
   const form = useRef<HTMLFormElement>(null);
@@ -69,20 +57,27 @@ function FormStl({ stl, categorias, aoTerminar }: { stl: Stl | null; categorias:
     form.current?.reset();
     setFoto(null);
     setPrevia(null);
+    setOriginal(null);
     setCategoria(categorias.length ? "" : NOVA_CATEGORIA);
   }, [resultado?.vez]);
 
-  async function escolherFoto(arquivo: File | undefined) {
+  function escolherFoto(arquivo: File | undefined) {
     setErroFoto(null);
+    if (inputFoto.current) inputFoto.current.value = "";
     if (!arquivo) return;
-    try {
-      const comprimida = await comprimirFoto(arquivo);
-      setFoto(comprimida);
-      setPrevia(URL.createObjectURL(comprimida));
-    } catch {
-      setErroFoto("Não consegui ler essa imagem. Tente outra (JPG, PNG ou WebP).");
-      if (inputFoto.current) inputFoto.current.value = "";
-    }
+    setOriginal(URL.createObjectURL(arquivo));
+    setEnquadrando(true);
+  }
+
+  function confirmarEnquadramento(arquivo: File) {
+    setFoto(arquivo);
+    setPrevia(URL.createObjectURL(arquivo));
+    setEnquadrando(false);
+  }
+
+  function falhaEnquadramento(mensagem: string) {
+    setErroFoto(mensagem);
+    setEnquadrando(false);
   }
 
   function enviar(dados: FormData) {
@@ -99,13 +94,22 @@ function FormStl({ stl, categorias, aoTerminar }: { stl: Stl | null; categorias:
 
         <div className="campo">
           <span className="rotulo">Foto</span>
-          <div className="foto-escolha">
-            {previa ? <img className="foto-previa" src={previa} alt="" /> : <div className="foto-previa vazia">Sem foto</div>}
-            <div className="pilha" style={{ gap: 6 }}>
-              <input ref={inputFoto} name="arquivo" type="file" accept="image/*" onChange={(e) => escolherFoto(e.target.files?.[0])} />
-              <span className="dica">{stl ? "Escolha outra só se quiser trocar." : "A foto é reduzida automaticamente."}</span>
+          {enquadrando && original ? (
+            <Enquadrador fonte={original} aoConfirmar={confirmarEnquadramento} aoCancelar={() => setEnquadrando(false)} aoFalhar={falhaEnquadramento} />
+          ) : (
+            <div className="foto-escolha">
+              {previa ? <img className="foto-previa" src={previa} alt="" /> : <div className="foto-previa vazia">Sem foto</div>}
+              <div className="pilha" style={{ gap: 6 }}>
+                <input ref={inputFoto} name="arquivo" type="file" accept="image/*" onChange={(e) => escolherFoto(e.target.files?.[0])} />
+                {original && (
+                  <button type="button" className="botao pequeno secundario" style={{ alignSelf: "flex-start" }} onClick={() => setEnquadrando(true)}>
+                    Ajustar enquadramento
+                  </button>
+                )}
+                <span className="dica">{stl ? "Escolha outra só se quiser trocar." : "Depois de escolher, você ajusta o enquadramento."}</span>
+              </div>
             </div>
-          </div>
+          )}
           {erroFoto && <p className="mensagem erro">{erroFoto}</p>}
         </div>
 
