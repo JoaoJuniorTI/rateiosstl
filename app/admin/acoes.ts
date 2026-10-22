@@ -2,10 +2,11 @@
 
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { limparEmail, limparInstagram, limparWhatsapp } from "@/lib/contato";
-import { emailAdmin, gerarHash, lerConfiguracao } from "@/lib/sessao";
-import { BUCKET, supabaseAdmin, supabaseAuth } from "@/lib/supabase";
+import { COOKIE_ADMIN, DURACAO_ADMIN_S, conferirAdmin, ehAdmin, gerarHash, lerConfiguracao, opcoesCookie, tokenAdmin } from "@/lib/sessao";
+import { BUCKET, supabaseAdmin } from "@/lib/supabase";
 import { NOVA_CATEGORIA } from "@/lib/tipos";
 
 export type Resultado = { ok: boolean; mensagem: string; vez?: number } | null;
@@ -13,9 +14,8 @@ export type Resultado = { ok: boolean; mensagem: string; vez?: number } | null;
 const TIPOS_FOTO = ["image/webp", "image/jpeg", "image/png"];
 const TAMANHO_MAX_FOTO = 3 * 1024 * 1024;
 
-
 async function exigirAdmin() {
-  if (!(await emailAdmin())) throw new Error("Acesso negado.");
+  if (!(await ehAdmin())) throw new Error("Acesso negado.");
 }
 
 function atualizarPaginas() {
@@ -149,8 +149,19 @@ export async function trocarSenha(_anterior: Resultado, form: FormData): Promise
   return sucesso("Senha alterada. Quem estava com a senha antiga vai precisar digitar a nova.");
 }
 
+export async function entrarAdmin(_anterior: string | null, form: FormData): Promise<string | null> {
+  const usuario = String(form.get("usuario") ?? "");
+  const senha = String(form.get("senha") ?? "");
+  if (!conferirAdmin(usuario, senha)) {
+    // Pequena espera para atrasar quem tenta adivinhar a senha.
+    await new Promise((r) => setTimeout(r, 1000));
+    return "Usuário ou senha incorretos.";
+  }
+  (await cookies()).set(COOKIE_ADMIN, tokenAdmin(), opcoesCookie(DURACAO_ADMIN_S));
+  redirect("/admin");
+}
+
 export async function sair() {
-  const supabase = await supabaseAuth();
-  await supabase.auth.signOut();
+  (await cookies()).delete(COOKIE_ADMIN);
   redirect("/admin");
 }
