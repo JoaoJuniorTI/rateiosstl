@@ -1,12 +1,13 @@
 "use client";
 
 import { useActionState } from "react";
+import { semLimpar } from "@/lib/formulario";
 import { entrarAdmin } from "./acoes";
 
 export default function FormLoginAdmin() {
   const [erro, acao, enviando] = useActionState(entrarAdmin, null);
   return (
-    <form action={acao} className="pilha">
+    <form onSubmit={semLimpar(acao)} className="pilha">
       <div className="campo">
         <label htmlFor="usuario">Usuário</label>
         <input id="usuario" name="usuario" autoComplete="username" autoCapitalize="none" autoFocus required />

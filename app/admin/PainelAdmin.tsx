@@ -3,6 +3,7 @@
 import Fuse from "fuse.js";
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { formatarValor, formatarWhatsapp, valorParaCampo } from "@/lib/contato";
+import { semLimpar } from "@/lib/formulario";
 import { NOVA_CATEGORIA, type Categoria, type Stl } from "@/lib/tipos";
 import { criarCategoria, excluirCategoria, excluirStl, salvarStl, trocarSenha, type Resultado } from "./acoes";
 import Enquadrador from "./Enquadrador";
@@ -89,7 +90,7 @@ function FormStl({ stl, categorias, aoTerminar }: { stl: Stl | null; categorias:
   return (
     <>
       <h2>{stl ? "Editar STL" : "Cadastrar STL"}</h2>
-      <form ref={form} action={enviar} className="pilha">
+      <form ref={form} onSubmit={semLimpar(enviar)} className="pilha">
         {stl && <input type="hidden" name="id" value={stl.id} />}
 
         <div className="campo">
@@ -266,7 +267,7 @@ function SecaoCategorias({ stls, categorias }: { stls: Stl[]; categorias: Catego
   return (
     <section className="secao">
       <h2>Categorias</h2>
-      <form ref={form} action={acao} className="linha-form campo" style={{ flexDirection: "row" }}>
+      <form ref={form} onSubmit={semLimpar(acao)} className="linha-form campo" style={{ flexDirection: "row" }}>
         <input name="nome" placeholder="Nova categoria" required maxLength={40} aria-label="Nome da nova categoria" />
         <button className="botao" disabled={salvando}>
           Adicionar
@@ -305,7 +306,7 @@ function SecaoSenha() {
   return (
     <section className="secao">
       <h2>Senha do site</h2>
-      <form ref={form} action={acao} className="pilha">
+      <form ref={form} onSubmit={semLimpar(acao)} className="pilha">
         <div className="campo">
           <label htmlFor="senha">Nova senha</label>
           <input id="senha" name="senha" type="password" autoComplete="new-password" required minLength={4} />
